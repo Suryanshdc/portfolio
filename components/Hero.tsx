@@ -11,6 +11,11 @@ type Props = {
 };
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+// each letter sits in its own box so the hover effect can tilt it without moving its measured position
+const Letters = ({ text }: { text: string }) => (
+  <>{[...text].map((ch, i) => <span key={i} className="tl"><span className="tl-in">{ch}</span></span>)}</>
+);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
 export default function Hero({ name, role, pitch, titleLines, tag, currently, code }: Props) {
@@ -68,6 +73,46 @@ export default function Hero({ name, role, pitch, titleLines, tag, currently, co
     };
   }, []);
 
+  // hover: letters of the giant title tilt, lift and dim around the cursor, then spring back
+  useEffect(() => {
+    const s = sec.current;
+    if (!s || !window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 768px) and (prefers-reduced-motion: no-preference)").matches) return;
+    const items = Array.from(s.querySelectorAll<HTMLElement>(".tl")).map((o) => ({ o, i: o.firstElementChild as HTMLElement, v: 0 }));
+    let mx = -9999, my = -9999, raf = 0;
+
+    const tick = () => {
+      raf = 0;
+      let busy = false;
+      const R = clamp(window.innerWidth * 0.095, 64, 168) * 2.4;
+      for (const it of items) {
+        const b = it.o.getBoundingClientRect();
+        const dx = b.left + b.width / 2 - mx, dy = b.top + b.height / 2 - my;
+        const t = clamp(1 - Math.hypot(dx, dy) / R);
+        const target = smooth(t);
+        it.v += (target - it.v) * 0.14;
+        if (target === 0 && it.v < 0.004) it.v = 0;
+        else busy = true;
+        const rot = clamp(dx / R, -1, 1) * it.v * 24;
+        it.i.style.transform = it.v ? `translateY(${(-it.v * 0.07).toFixed(3)}em) rotate(${rot.toFixed(2)}deg)` : "";
+        it.i.style.opacity = it.v ? String(1 - it.v * 0.5) : "";
+      }
+      if (busy) raf = requestAnimationFrame(tick);
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const move = (e: PointerEvent) => { mx = e.clientX; my = e.clientY; kick(); };
+    const leave = () => { mx = my = -9999; kick(); };
+
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("scroll", kick, { passive: true });
+    document.documentElement.addEventListener("pointerleave", leave);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("scroll", kick);
+      document.documentElement.removeEventListener("pointerleave", leave);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const [pa, pb] = pitch.split("RAG pipelines");
 
   return (
@@ -77,9 +122,9 @@ export default function Hero({ name, role, pitch, titleLines, tag, currently, co
 
         {/* cover: giant title + corner text */}
         <div ref={cover} className="pointer-events-none px-6 text-center md:absolute md:inset-0 md:z-20 md:px-0 md:will-change-transform">
-          <h1 className="font-display text-[clamp(3rem,13vw,5rem)] font-semibold uppercase leading-[.9] tracking-tight md:absolute md:inset-x-0 md:top-[18vh] md:text-[clamp(4rem,9.5vw,10.5rem)]">
-            <span className="block"><span className="mr-[.15em] font-light text-paper/80">&lt;</span>{titleLines[0]}</span>
-            <span className="block">{titleLines[1]}<span className="ml-[.15em] font-light text-paper/80">/&gt;</span></span>
+          <h1 aria-label={titleLines.join(" ")} className="font-display text-[clamp(3rem,13vw,5rem)] font-semibold uppercase leading-[.9] tracking-tight md:absolute md:inset-x-0 md:top-[18vh] md:text-[clamp(4rem,9.5vw,10.5rem)]">
+            <span className="block"><span className="mr-[.15em] font-light text-paper/80">&lt;</span><span aria-hidden><Letters text={titleLines[0]} /></span></span>
+            <span className="block"><span aria-hidden><Letters text={titleLines[1]} /></span><span className="ml-[.15em] font-light text-paper/80">/&gt;</span></span>
           </h1>
           <div className="mt-8 flex justify-between gap-4 text-left text-sm md:absolute md:inset-x-0 md:bottom-[7vh] md:mt-0 md:px-[11%] md:text-base">
             <span>©{new Date().getFullYear()}</span>

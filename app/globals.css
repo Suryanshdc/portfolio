@@ -57,3 +57,7 @@ body::after { display: none; }
 .crowd-figure { position: absolute; left: 50%; bottom: 0; z-index: 4; height: calc(var(--u) * 520); width: auto; transform: translateX(-50%); }
 @keyframes crowd-walk { to { transform: translateX(-50%); } }
 @keyframes crowd-bob { 50% { transform: translateY(calc(var(--u) * -3)); } }
+
+/* hero title letters (hover tilt) */
+.tl { display: inline-block; }
+.tl-in { display: inline-block; transform-origin: 50% 85%; will-change: transform, opacity; }
