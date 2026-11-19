@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; background: #11151c; }
+body { @apply bg-ink text-paper font-body antialiased; }
+:focus-visible { outline: 2px solid #8fb3ff; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
+
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.hero-in { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+
+/* hero marquee */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee { animation: marquee 45s linear infinite; }
+.outline-text { color: transparent; -webkit-text-stroke: 1px #2f3745; }
+
+/* folder project cards */
+.folder { position: relative; height: 19rem; }
+.folder-tab { position: absolute; top: .9rem; left: 0; width: 38%; height: 1.8rem; border-radius: 8px 8px 0 0; background: #1b212b; border: 1px solid #2a313d; border-bottom: 0; }
+.folder-back { position: absolute; inset: 2.6rem 0 0 0; border-radius: 0 8px 8px 8px; background: #1b212b; border: 1px solid #2a313d; }
+.sheet { position: absolute; left: 1.1rem; right: 1.1rem; top: 3.4rem; height: 9rem; border-radius: 4px; background: #eceae4 repeating-linear-gradient(transparent 0 .9rem, #c9c6bd .9rem calc(.9rem + 1px)); transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+.sheet.s2 { left: 1.8rem; right: .8rem; background-color: #d8d5cc; transform: rotate(1.5deg); }
+.folder-front { position: absolute; inset: 6rem 0 0 0; border-radius: 8px; background: #222936; border: 1px solid #2f3745; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: border-color .2s; }
+.group:hover .sheet, .group:focus-visible .sheet { transform: translateY(-1.6rem) rotate(-2deg); }
+.group:hover .sheet.s2, .group:focus-visible .sheet.s2 { transform: translateY(-1rem) rotate(3deg); }
+.group:hover .folder-front, .group:focus-visible .folder-front { border-color: #8fb3ff; }
